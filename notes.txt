@@ -1,0 +1,39 @@
+websockets 101
+
+INDEX.HTML
+//countUpdated is a custom event. Connection is a built-in one
+socket.emit('countUpdated', count) //sends data back to the newly connected cliente
+//all args past the event name in emit() will be available on the client's CB
+
+socket.on('increment', () => {
+    count++
+    //socket.emit('countUpdated', count)
+    //socket.emit() will emit the evt to a single connection, io.emit() will emit to all conns
+    io.emit('countUpdated', count)
+  })
+
+CHAT.JS
+socket.on('countUpdated', (count) => { //provided by the args in emit(), can be called wharever I want, it's the order that matters. Thier 2nd arg is the 1st for this CB
+  console.log("The count has been updated", count) //printed in the browser console, but not in the editor
+})
+
+document.querySelector('#increment').addEventListener('click', () => {
+  console.log('clicked')
+  socket.emit('increment') //comm evt back to srv to handle (update count)
+})
+<button id='increment'>+1</button>
+///////////////////////////////////
+
+ navigator.geolocation.getCurrentPosition(({coords}) => {
+    //socket.emit('sendLocation', coords.latitude) //nao socket.on, que é para escutar
+    //socket.emit('sendLocation', coords) // why was it reading an empty object in the server?
+    socket.emit('sendLocation', { etc: position.coords })
+    // socket.emit('sendLocation', {
+    //   latitude: coords.latitude,
+    //   longitude: coords.longitude
+    // })
+    console.log(position.coords)
+  })
+})
+
+The issue with the position object/result that you get from calling navigator.geolocation.getCurrentPosition is that it's properties are not enumerable, meaning that you can't easily "stringify" the object and pass it along with your socket.emit call, which is why you're getting an empty object as a result.
